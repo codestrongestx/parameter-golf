@@ -1,0 +1,22 @@
+logs/depthfilm_cuda_smoke_3090_nocompile.txt
+val_bpb:enabled tokenizer_kind=sentencepiece tokenizer_path=./data/tokenizers/fineweb_1024_bpe.model
+train_loader:dataset:fineweb10B_sp1024 train_shards:1
+val_loader:shards pattern=./data/datasets/fineweb10B_sp1024/fineweb_val_*.bin tokens:1048576
+model_params:2696352 virtual_layers:8 unique_layers:4 depth_condition_dim:16 mlp_mult:3
+world_size:1 grad_accum_steps:8
+sdp_backends:cudnn=False flash=True mem_efficient=False math=False
+attention_mode:gqa num_heads:8 num_kv_heads:4
+tie_embeddings:True embed_lr:0.05 head_lr:0.0 matrix_lr:0.04 scalar_lr:0.04
+train_batch_tokens:16384 train_seq_len:256 iterations:2 warmup_steps:0 eval_stride:0 max_wallclock_seconds:600.000
+seed:1337
+step:1/2 train_loss:6.9343 train_time:918ms step_avg:917.70ms
+step:2/2 train_loss:10.4649 train_time:1448ms step_avg:724.08ms
+step:2/2 val_loss:7.8441 val_bpb:4.6998 train_time:1455ms step_avg:727.49ms
+peak memory allocated: 419 MiB reserved: 430 MiB
+Serialized model: 10283489 bytes
+Code size: 69068 bytes
+Total submission size: 10352557 bytes
+Serialized model int8+zlib: 2523469 bytes (payload:3977856 raw_torch:3998605 payload_ratio:2.58x)
+Total submission size int8+zlib: 2592537 bytes
+final_int8_zlib_roundtrip val_loss:8.1560 val_bpb:4.8866 eval_time:22574ms
+final_int8_zlib_roundtrip_exact val_loss:8.15599810 val_bpb:4.88663960

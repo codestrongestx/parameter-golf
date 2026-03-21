@@ -109,6 +109,8 @@ torchrun --standalone --nproc_per_node=1 experiments/depth_film_recurrent/train_
 
 Notes:
 
+- For cheap single-GPU smoke validation, prefer `ENABLE_TORCH_COMPILE=0`. On the RunPod PyTorch 2.4 image, compile overhead dominated wall-clock time on an RTX 3090 and was not worth paying just to validate correctness.
+- A validated cheap smoke configuration is recorded under `results/2026-03-21_rtx3090_depthfilm_cuda_smoke/`.
 - `INT4_STEP=4` is the int6-style export knob from the plan. It rounds selected shared-block int8 tensors to multiples of 4 after quantization.
 - `EVAL_STRIDE=64` enables sliding-window evaluation at the training sequence length.
 - Start with `TRAIN_BATCH_TOKENS=65536` on 1xH100 and scale up after checking memory/step time.

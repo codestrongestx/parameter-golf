@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import copy
 import glob
+import inspect
 import io
 import math
 import os
@@ -26,6 +27,12 @@ import torch.distributed as dist
 import torch.nn.functional as F
 from torch import Tensor, nn
 from torch.nn.parallel import DistributedDataParallel as DDP
+
+try:
+    _sdpa_params = inspect.signature(F.scaled_dot_product_attention).parameters
+    SDPA_SUPPORTS_ENABLE_GQA = "enable_gqa" in _sdpa_params
+except (TypeError, ValueError):
+    SDPA_SUPPORTS_ENABLE_GQA = False
 
 # -----------------------------
 # HYPERPARAMETERS
@@ -61,6 +68,7 @@ class Hyperparameters:
     eval_stride = int(os.environ.get("EVAL_STRIDE", 0))
     eval_batch_seqs = int(os.environ.get("EVAL_BATCH_SEQS", 256))
     max_wallclock_seconds = float(os.environ.get("MAX_WALLCLOCK_SECONDS", 600.0))
+    enable_torch_compile = bool(int(os.environ.get("ENABLE_TORCH_COMPILE", "1")))
     qk_gain_init = float(os.environ.get("QK_GAIN_INIT", 1.5))
     int4_blocks = os.environ.get("INT4_BLOCKS", "")
     int4_step = int(os.environ.get("INT4_STEP", 4))
@@ -692,14 +700,15 @@ class CausalSelfAttention(nn.Module):
         q = apply_rotary_emb(q, cos, sin)
         k = apply_rotary_emb(k, cos, sin)
         q = q * self.q_gain.to(dtype=q.dtype)[None, :, None, None]
-        y = F.scaled_dot_product_attention(
-            q,
-            k,
-            v,
-            attn_mask=None,
-            is_causal=True,
-            enable_gqa=(self.num_kv_heads != self.num_heads),
-        )
+        needs_gqa = self.num_kv_heads != self.num_heads
+        if needs_gqa and not SDPA_SUPPORTS_ENABLE_GQA:
+            repeat = self.num_heads // self.num_kv_heads
+            k = k.repeat_interleave(repeat, dim=1)
+            v = v.repeat_interleave(repeat, dim=1)
+        sdpa_kwargs = {"attn_mask": None, "is_causal": True}
+        if needs_gqa and SDPA_SUPPORTS_ENABLE_GQA:
+            sdpa_kwargs["enable_gqa"] = True
+        y = F.scaled_dot_product_attention(q, k, v, **sdpa_kwargs)
         y = y.transpose(1, 2).contiguous().reshape(bsz, seqlen, dim)
         return self.proj(y)
 
@@ -1122,7 +1131,8 @@ def main() -> None:
 
     code = Path(__file__).read_text(encoding="utf-8")
     args = Hyperparameters()
-    zeropower_via_newtonschulz5 = torch.compile(zeropower_via_newtonschulz5)
+    if args.enable_torch_compile:
+        zeropower_via_newtonschulz5 = torch.compile(zeropower_via_newtonschulz5)
 
     # -----------------------------
     # DISTRIBUTED + CUDA SETUP
@@ -1235,7 +1245,7 @@ def main() -> None:
         if isinstance(module, Rotary):
             module.inv_freq.data = module.inv_freq.data.float()
     restore_low_dim_params_to_fp32(base_model)
-    compiled_model = torch.compile(base_model, dynamic=False, fullgraph=True)
+    compiled_model = torch.compile(base_model, dynamic=False, fullgraph=True) if args.enable_torch_compile else base_model
     model: nn.Module = DDP(compiled_model, device_ids=[local_rank], broadcast_buffers=False) if distributed else compiled_model
 
     # Optimizer split:
@@ -1511,7 +1521,11 @@ def main() -> None:
     torch.cuda.synchronize()
     t_qeval = time.perf_counter()
     if args.eval_stride > 0:
-        compiled_logits = torch.compile(base_model.forward_logits, dynamic=False)
+        compiled_logits = (
+            torch.compile(base_model.forward_logits, dynamic=False)
+            if args.enable_torch_compile
+            else base_model.forward_logits
+        )
         warmup_x = torch.zeros(args.eval_batch_seqs, args.train_seq_len, dtype=torch.int64, device=device)
         base_model.eval()
         with torch.inference_mode(), torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=True):
