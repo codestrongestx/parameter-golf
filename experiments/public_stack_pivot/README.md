@@ -11,6 +11,10 @@ Current goal:
 
 Current result:
 
+- `results/2026-03-21_8xh100_10l_fp16embed_wd20k_seed42/`
+  - first real `8x H100` verification run on the pivot branch
+  - same 10-layer public stack with `WARMDOWN_ITERS=20000`
+  - post-roundtrip `val_bpb: 1.17389939`, slightly better than the merged seed-42 baseline
 - `results/2026-03-21_h100_10l_fp16embed_wd20k_seed42/`
   - based on `2026-03-19_SlidingWindow_FP16Emb_10L_MuonWD_OvertoneInit`
   - single-GPU directional run with `WARMDOWN_ITERS=20000`
@@ -23,7 +27,16 @@ Current result:
 - `results/2026-03-21_h100_10l_fp16embed_sweep/summary.md`
   - three-run comparison table and current recommendation
 
-Current best single-H100 tuning result:
+Current best result:
+
+- `8x H100`, `WARMDOWN_ITERS=20000`
+- post-roundtrip `val_bpb: 1.17389939`
+- artifact `14122782` bytes
+- total submission size `14178772` bytes
+- `step_stop: 10919`
+- `ms/step: 54.96`
+
+Best single-H100 tuning result:
 
 - `WARMDOWN_ITERS=20000`
 - `EVAL_SEQ_LEN=1024`
