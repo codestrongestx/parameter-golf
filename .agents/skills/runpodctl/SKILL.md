@@ -165,6 +165,39 @@ runpodctl ssh add-key                                 # Add SSH key
 
 **Agent note:** `ssh info` returns connection details, not an interactive session. If interactive SSH is not available, execute commands remotely via `ssh user@host "command"`.
 
+### Connection from Docker Sandbox
+
+If you are running inside Docker/CI/a sandbox with mandatory `HTTP_PROXY` / `HTTPS_PROXY`, direct SSH to the pod may fail even when the pod is healthy from a normal workstation. Common failure signatures:
+
+- `ssh: connect to host <ip> port <port>: Connection refused`
+- `Connection closed by UNKNOWN port 65535`
+- `kex_exchange_identification: Connection closed by remote host`
+
+When that happens, `*.proxy.runpod.net` HTTPS often still works because it is ordinary HTTPS through the proxy. Use this as a temporary fallback:
+
+1. Confirm the pod is otherwise healthy from a normal machine or the Runpod web terminal.
+2. If port `8888` is not already serving Jupyter, temporarily replace the pod start command / docker args via the Runpod API or web UI with a tiny Python HTTP exec server bound to `0.0.0.0:8888`.
+3. Reach it through the Runpod HTTPS proxy:
+
+```bash
+curl -sk "https://<pod-id>-8888.proxy.runpod.net/"
+curl -sk -X POST -H 'Content-Type: application/json' \
+  --data-binary '{"cmd":"pwd && nvidia-smi","cwd":"/workspace","timeout":30}' \
+  "https://<pod-id>-8888.proxy.runpod.net/"
+```
+
+Expected behavior:
+
+- `GET /` returns a small health JSON response
+- `POST /` with `{"cmd":"...", "cwd":"/workspace", "timeout":300}` executes a remote shell command and returns JSON with `stdout`, `stderr`, and `rc`
+
+**Agent notes:**
+
+- This is an API-level fallback, not a normal `runpodctl` CLI feature.
+- Prefer this only when SSH from the current sandbox is blocked but HTTPS to `*.proxy.runpod.net` still works.
+- Treat it as high-risk temporary access: it exposes arbitrary command execution over a public HTTPS URL. Avoid secrets, use short-lived pods, and remove or destroy the pod immediately after use.
+- If local macOS/Linux SSH works but the sandbox SSH path fails, assume the sandbox network/proxy is the issue, not the pod.
+
 ### File Transfer
 
 ```bash
