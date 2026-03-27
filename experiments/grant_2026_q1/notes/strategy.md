@@ -59,10 +59,17 @@ Rule:
 
 ## Tactical Order
 
-1. reproduce the strongest accepted-style neural stack
-2. upgrade it with the best pieces from `#609` and `#728`
-3. only then branch into full-rescore n-gram
-4. keep tokenizer work fully separate
+1. use `3090` to cheaply reject bad directions
+2. move only promising directions to `1x H100`
+3. keep all three lanes documented with clean notes and curated results
+4. decide later whether any lane deserves `8x H100`
+
+## Decision Rule
+
+The purpose of this campaign is not to schedule `8x H100` now.
+
+The purpose is to build enough evidence, lane by lane, that a later `8x H100`
+decision is obvious.
 
 ## What Counts As Progress
 

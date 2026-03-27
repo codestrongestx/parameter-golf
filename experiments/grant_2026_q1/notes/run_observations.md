@@ -15,5 +15,6 @@ Suggested format for each block:
 Seed observations from prior work:
 
 - cheap `3090` CUDA smoke is already proven in the earlier DepthFiLM branch
-- `1x H100` should be the default iteration machine now
-- `8x H100` should be reserved for the final verification attempt
+- this campaign should still use `3090` first to kill bad directions cheaply
+- `1x H100` is for lanes that already look promising
+- `8x H100` is not part of the active plan; it is a later user decision

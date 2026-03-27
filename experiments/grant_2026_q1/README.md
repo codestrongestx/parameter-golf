@@ -3,6 +3,13 @@
 This folder is the private planning and execution area for the first `$20-$50`
 of grant-funded iteration.
 
+The active plan is:
+
+- use `3090` first to kill weak directions cheaply
+- move only promising directions to `1x H100`
+- keep `8x H100` out of scope for now
+- decide later, from the accumulated docs, observations, and logs, whether any lane deserves `8x H100`
+
 We keep one branch for the whole campaign:
 
 - `grant-2026-q1`

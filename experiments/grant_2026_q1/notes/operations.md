@@ -3,15 +3,16 @@
 ## Budget
 
 - treat `$20-$50` as the budget for the whole first campaign
-- use `1x H100` as the normal iteration machine
-- use `8x H100` once at the very end, only for final verification
+- use `3090` as the first paid filter
+- use `1x H100` only for promising directions
+- do not plan around `8x H100` yet
 
 ## Run Ladder
 
 1. local sanity work
-2. `3090`-class CUDA smoke only if a risky systems/code change needs the cheapest GPU check
-3. `1x H100` for real iteration
-4. `8x H100` once at the end
+2. `3090`-class CUDA run to kill weak directions cheaply
+3. `1x H100` only when a lane is promising enough to deserve better measurement
+4. `8x H100` only if the user later chooses a winner
 
 The previous `3090` work already proved:
 
@@ -21,7 +22,8 @@ The previous `3090` work already proved:
 - export works
 - int8+zlib roundtrip works
 
-So `3090` is optional now, not mandatory.
+But for this campaign, `3090` is still the preferred first paid filter because
+it is the strongest cost-saving step.
 
 ## One-Run Rule
 
@@ -53,11 +55,16 @@ Add human conclusions to:
 
 - `notes/run_observations.md`
 
+The user will decide later, from the accumulated notes and curated results,
+whether any lane deserves `8x H100`.
+
 ## Cost Discipline
 
 - stop or delete the GPU as soon as the run is finished
 - idle time is wasted budget
 - treat evaluation time as a real cost center
+- kill bad directions early on `3090`
+- do not move a lane to `1x H100` unless the `3090` evidence justifies it
 
 Known lesson from previous work:
 
