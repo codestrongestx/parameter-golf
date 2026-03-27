@@ -64,6 +64,18 @@ Rule:
 3. keep all three lanes documented with clean notes and curated results
 4. decide later whether any lane deserves `8x H100`
 
+## Lane Order
+
+1. `official_neural`
+2. `ngram_rescore`
+3. `tokenizer_wildcard`
+
+Why:
+
+- `official_neural` is the safest mainline and the best first use of limited budget
+- `ngram_rescore` has very high upside, but more legality and review risk
+- `tokenizer_wildcard` has the highest verification burden and should stay isolated
+
 ## Decision Rule
 
 The purpose of this campaign is not to schedule `8x H100` now.
