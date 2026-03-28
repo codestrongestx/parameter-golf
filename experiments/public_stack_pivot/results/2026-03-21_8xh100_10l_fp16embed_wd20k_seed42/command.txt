@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd /workspace/parameter-golf
+export OMP_NUM_THREADS=1
+export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
+export RUN_ID=pivot_wd20k_8xh100_seed42
+export DATA_PATH=/workspace/parameter-golf/data/datasets/fineweb10B_sp1024
+export TOKENIZER_PATH=/workspace/parameter-golf/data/tokenizers/fineweb_1024_bpe.model
+export VOCAB_SIZE=1024
+export SEED=42
+export NUM_LAYERS=10
+export MODEL_DIM=512
+export NUM_HEADS=8
+export NUM_KV_HEADS=4
+export MLP_MULT=2
+export TIE_EMBEDDINGS=1
+export TIED_EMBED_LR=0.10
+export TIED_EMBED_INIT_STD=0.005
+export MATRIX_LR=0.04
+export SCALAR_LR=0.04
+export MUON_BACKEND_STEPS=5
+export TRAIN_BATCH_TOKENS=524288
+export VAL_BATCH_SIZE=524288
+export TRAIN_SEQ_LEN=1024
+export EVAL_STRIDE=64
+export ITERATIONS=20000
+export WARMDOWN_ITERS=20000
+export WARMUP_STEPS=20
+export MAX_WALLCLOCK_SECONDS=600
+export TRAIN_LOG_EVERY=200
+export VAL_LOSS_EVERY=0
+torchrun --standalone --nproc_per_node=8 /workspace/pivot/train_gpt.py

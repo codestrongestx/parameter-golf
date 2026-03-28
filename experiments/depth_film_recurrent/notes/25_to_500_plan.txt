@@ -1,0 +1,25 @@
+I checked the challenge page, the repo README, the official merged leaderboard, and the current PR queue. As of March 20, 2026, the official merged leaderboard in the README still tops out at 1.1748 BPB, but the open PR frontier has already moved much lower: #179 is at 1.1472, #162 at 1.1483, #164 around 1.1524/1.1538, #173 at 1.1546, and #180 reports 1.1453. Those runs are mostly variations on the same now-crowded recipe: int6 or mixed low-bit quantization, 3x MLP, sliding-window eval, fp16 tied embeddings, zstd compression, plus SmearGate/BigramHash, SWA, QAT, or weight-decay tweaks.  
+
+The README explicitly says unique non-record submissions are welcome if they are well justified, and the OpenAI credit form says the $500 development grant is for people who already have a concrete approach and some experiments. So the best use of your $25 is not “one more slightly better int6 stack.” It is a small, clean, novel demo with a believable scaling story.  
+
+My recommendation: build a DepthFiLM Recurrent Stack.
+
+Concretely: reuse 3–4 unique transformer blocks across 12 virtual layers, but give each virtual pass a tiny learned depth-conditioning signal so shared weights can specialize. Then wrap that inside the proven stack: int6+zstd export, 3x MLP, fp16 tied embeddings, sliding-window eval, SmearGate, and BigramHash. I like this because the current top PRs are not doing it—they are mostly better quantization/optimizer/SmearGate stacks—while recurrence-related PRs are still exploratory and non-record.  
+
+Why this lane is strong: #167 shows that plain layer sharing can cut unique params to about one-third, match baseline BPB locally, and free roughly 10MB of artifact budget. #103 pushes a much more ambitious looped model with per-virtual-layer LoRA and skip connections, which suggests the real bottleneck is specialization, not recurrence itself. The open opportunity is the middle ground: a simple recurrence mechanism with tiny per-depth conditioning, merged with the frontier stack. Even the community commentary thread explicitly flags “depth recurrence + the baseline stack” as an untried combination.  
+
+I would not spend the first credits on paid-prefix or val-only memorization. Those lanes already have eye-popping numbers—1.0238 for paid prefix and 0.9274 for the val-only aside—but they are already occupied and read more like artifact-as-memory than a new training idea. I also would not make your first demo tokenizer-heavy: larger-vocab runs are interesting, but tokenizer changes get extra scrutiny in the README.  
+
+Use the $25 for a very tight demo:
+	1.	Start from the simple layer-sharing idea, not a kitchen-sink monster.
+	2.	Run three short ablations: shared blocks only; shared blocks + depth conditioning; shared blocks + depth conditioning + SmearGate/BigramHash/int6 export.
+	3.	In the README, report only post-roundtrip val_bpb, artifact bytes, unique parameter count, and ms/step.
+	4.	Make one honest claim: “Depth conditioning recovers most of the quality lost by naïve sharing while keeping several MB free for scale-up.”
+
+That style matters. There is already repo discussion about the PR queue getting flooded and a push for stricter rigor, so a clean ablation-heavy non-record PR is more likely to stand out than a messy “15-technique moonshot.”  
+
+If the demo works, the $500-grant story becomes obvious: use the saved bytes from recurrence to buy either more width or a 4096-vocab follow-up. A 4096-vocab model already reached 1.1642 without SmearGate/QAT, so recurrent + depth-conditioned + frontier stack + larger vocab is a very credible phase-two scaling story.  
+
+Use this nearly verbatim in the form:
+
+I’m exploring a depth-conditioned recurrent transformer for Parameter Golf: 3–4 unique blocks reused across 12 virtual layers, with tiny per-depth modulation so shared weights can specialize. Initial experiments focus on combining this with the strongest validated ingredients—int6 compression, MLP 3x, fp16 tied embeddings, sliding-window evaluation, and lightweight token-pair features. The quick-start credits fund ablations and a first non-record submission; the development grant would fund 8×H100 multi-seed validation and a scale-up into wider or larger-vocab variants.
