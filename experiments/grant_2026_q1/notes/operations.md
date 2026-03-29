@@ -58,6 +58,20 @@ Add human conclusions to:
 The user will decide later, from the accumulated notes and curated results,
 whether any lane deserves `8x H100`.
 
+## Metric Policy
+
+- every curated run must record both a lane-primary metric and a shared comparison metric
+- lane-primary metric answers the lane's actual question:
+  - `official_neural`: usually `final_int6_sliding_window_exact`
+  - `ngram_rescore`: usually `final_ngram_exact`
+  - `tokenizer_wildcard`: whatever the lane-specific terminal objective is
+- shared comparison metric is the best available exported-model BPB for cross-lane sanity checks:
+  - prefer `final_research_export_sliding_exact`
+  - otherwise `final_int6_sliding_window_exact`
+  - otherwise `final_research_export_exact`
+  - otherwise `final_int6_roundtrip_exact`
+- do not compare raw lane-primary BPB across lanes without checking the metric label and validation slice first
+
 ## Cost Discipline
 
 - stop or delete the GPU as soon as the run is finished

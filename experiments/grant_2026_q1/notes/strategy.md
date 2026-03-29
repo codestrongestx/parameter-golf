@@ -87,7 +87,8 @@ decision is obvious.
 
 Track only:
 
-- post-roundtrip `val_bpb`
+- lane-primary `val_bpb`
+- shared-comparison `val_bpb`
 - artifact bytes
 - unique parameter count
 - `ms/step`
