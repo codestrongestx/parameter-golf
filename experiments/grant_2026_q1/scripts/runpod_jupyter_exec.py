@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import re
 import shlex
@@ -118,6 +119,21 @@ class JupyterTerminal:
         response.raise_for_status()
         return response.content
 
+    def upload(self, local_path: Path, remote_path: str) -> None:
+        payload = {
+            "content": base64.b64encode(local_path.read_bytes()).decode("ascii"),
+            "format": "base64",
+            "type": "file",
+        }
+        response = self.session.put(
+            f"{self.base_url}/api/contents/{remote_path.lstrip('/')}",
+            headers={"Referer": f"{self.base_url}/lab", "X-XSRFToken": self.xsrf},
+            json=payload,
+            verify=False,
+            timeout=300,
+        )
+        response.raise_for_status()
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run a shell command through a Runpod Jupyter terminal.")
@@ -134,6 +150,12 @@ def parse_args() -> argparse.Namespace:
     fetch_parser.add_argument("--password", required=True, help="Jupyter password")
     fetch_parser.add_argument("--remote-path", required=True, help="Remote file path relative to the Jupyter root")
     fetch_parser.add_argument("--output", required=True, help="Local output path")
+
+    push_parser = subparsers.add_parser("push", help="Upload a local file through the authenticated Jupyter contents endpoint")
+    push_parser.add_argument("--base-url", required=True, help="Proxy URL, for example https://<pod>-8888.proxy.runpod.net")
+    push_parser.add_argument("--password", required=True, help="Jupyter password")
+    push_parser.add_argument("--local-path", required=True, help="Local file path to upload")
+    push_parser.add_argument("--remote-path", required=True, help="Remote file path relative to the Jupyter root")
     return parser.parse_args()
 
 
@@ -150,9 +172,13 @@ def main() -> None:
         sys.stdout.write(output)
         sys.exit(status)
 
-    output_path = Path(args.output)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_bytes(terminal.fetch(args.remote_path))
+    if args.mode == "fetch":
+        output_path = Path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_bytes(terminal.fetch(args.remote_path))
+        return
+
+    terminal.upload(Path(args.local_path), args.remote_path)
 
 
 if __name__ == "__main__":
