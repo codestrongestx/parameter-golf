@@ -1,1 +1,0 @@
-BIGRAM_VOCAB_SIZE=3072 BIGRAM_DIM=112 WARMDOWN_ITERS=4000 GPTQ_CALIB_BATCHES=64 TARGET_MB=15.9 SEED=314 torchrun --standalone --nproc_per_node=1 /workspace/parameter-golf/experiments/leaderboard_1xh100_replay/results/2026-03-29_1xH100SXM_pr728_valcalib_seed314/train_gpt.py

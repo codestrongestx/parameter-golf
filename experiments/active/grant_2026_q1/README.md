@@ -22,6 +22,10 @@ We keep separate lanes inside this folder:
 
 Shared notes live under `notes/`.
 
+Current state lives in:
+
+- `STATUS.md`
+
 Per-run curated evidence should go under:
 
 - `official_neural/results/YYYY-MM-DD_<gpu>_<run_id>/`
@@ -38,6 +42,11 @@ Each preserved run folder should contain:
 
 Read first:
 
+- `STATUS.md`
 - `notes/strategy.md`
 - `notes/operations.md`
 - `notes/run_observations.md`
+
+Reusable Runpod access now lives outside this campaign:
+
+- `scripts/runpod_jupyter_exec.py`

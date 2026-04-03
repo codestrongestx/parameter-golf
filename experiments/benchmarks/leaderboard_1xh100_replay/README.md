@@ -9,8 +9,12 @@ Purpose:
 Current replay targets:
 
 - official merged top record: `2026-03-22_11L_EMA_GPTQ-lite_warmdown3500_QAT015_1.1233`
-- strongest frontier neural branch: `pr-728`
+- strongest credible frontier neural branch: `pr-1060`
 - strongest frontier rescore branch: `pr-888`
+
+Current conclusions live in:
+
+- `STATUS.md`
 
 Interpretation rule:
 
