@@ -1,5 +1,11 @@
 # Grant 2026 Q1 Status
 
+Archived.
+
+This folder is kept for negative evidence, old screening notes, and run
+curation history. The actionable conclusion from it was to pivot toward the
+cleaner `PR #1060`-style neural stack surfaced by the replay benchmark.
+
 ## Read This First
 
 - canonical strategy: `notes/strategy.md`

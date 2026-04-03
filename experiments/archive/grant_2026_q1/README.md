@@ -1,5 +1,10 @@
 # Grant 2026 Q1
 
+Archived.
+
+This folder is preserved as a record of the older multi-lane screening pass.
+It is no longer the active planning surface.
+
 This folder is the private planning and execution area for the first `$20-$50`
 of grant-funded iteration.
 
